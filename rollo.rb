@@ -118,10 +118,9 @@ rollo = PianoRoll.new(
       		#:chord_picker => harmonized_root_chord_picker,
       		#:chord_picker => [degree_chord_picker,harmonized_root_chord_picker].pick,
           :roll => {},
-          #:queue => [60,63,60,60,64,60,58],  i guess i'm not even using the queue yet.. 
-          :queue => [],
+          #:queue => [],
           :cloner => L{|pr| pr = pr.next},
-          :options_file => 'PianoRoll.opts.rb',
+          :options_file => 'options.rb',
           :improvs_file => 'improvs.rb',
           :logging => true)
 
