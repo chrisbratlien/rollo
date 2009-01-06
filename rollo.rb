@@ -8,7 +8,7 @@ class PianoRoll
   attr_reader :next, :root_note,:scale_name, :scale, :roll, :chord, :degree_picker
   
   def initialize(attributes = {})	
-    puts "FELLAS I'M READY TO GETUP AND DO #{self} THANG"
+    #puts "FELLAS I'M READY TO GETUP AND DO #{self} THANG"
     %w{midi next root_note scale_name degree chord_picker roll queue options_file improvs_file logging}.each do |attribute|
       eval("@#{attribute} = attributes[:#{attribute}]")
     end 
@@ -62,10 +62,6 @@ class PianoRoll
     if @improvs_file and File.exists?(@improvs_file)
       eval(File.read(@improvs_file))
     end
-   
-    #actually calling the lambdas here 
-    @improv[:chords][self,:chords,@match_by_value]
-
     
     #TODO: add another improv lambda for either lead or bassline.  provide functions like
     # aggregate row and column density so lambdas can decide to "fill in the gaps" a little.

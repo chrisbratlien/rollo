@@ -23,8 +23,15 @@
       pr.roll[name][note] = [0.0] * 4
     end
     if test[chord,note] #pr.chord.contains_note_value?(note)
-      pr.roll[name][note] = spark.map{|n| n + rand(5)*0.1}
+      #pr.roll[name][note] = spark.map{|n| n + rand(5)*0.1}
+      pr.roll[name][note] = spark.map{|n| rand}
     end
   end
 }   
+
+
+
+#actually calling the lambdas here 
+@improv[:chords][self,:chords,@match_by_value]
+
 
