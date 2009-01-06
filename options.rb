@@ -1,4 +1,5 @@
-#This file gets loaded in for each measure
+#This file gets loaded in for each measure so you should hear your changes soon afterward
+
 #@degree_picker = L {|prev| [nil,3,5,6,nil,1,2,][prev]} 3 6 2 5 1 -> ring
 #@degree_picker = L {|prev| [nil,4,5,6,7,1,2,3][prev]}  3 6 2 5 1 4 7 -> ring
 #@degree_picker = L {|prev| [nil,4,nil,nil,5,1][prev]}

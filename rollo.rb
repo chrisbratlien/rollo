@@ -42,7 +42,7 @@ class PianoRoll
       #puts "\a" if measure == 1
       (0..3).each do |step|
         collect_for_this_step = []
-        (60..72).each do |note|
+        (60..84).each do |note|
           if rand < @roll[:chords][note][step]
             collect_for_this_step << note
           end

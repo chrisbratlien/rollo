@@ -12,7 +12,8 @@
 
 @improv[:chords] = L{ |pr,name,test|
 
-  spark = [1.0,1.0,1.0,0.0]
+  #spark = [1.0,1.0,1.0,0.0]
+  spark = [0.9,rand*1.1,rand*1.1,rand]
 
   if !pr.roll.has_key?(name)
     pr.roll[name] = {}
