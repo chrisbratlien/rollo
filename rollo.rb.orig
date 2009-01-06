@@ -9,18 +9,19 @@ class PianoRoll
   
   def initialize(attributes = {})	
     puts "FELLAS I'M READY TO GETUP AND DO #{self} THANG"
-    %w{midi next root_note scale_name degree chord_picker roll queue options_file improvs_file logging}.each do |attribute|
+    %w{midi next root_note scale_name degree chord_picker roll queue logging}.each do |attribute|
       eval("@#{attribute} = attributes[:#{attribute}]")
     end 
+    
+    #@degree_picker = L {|prev| [nil,3,5,6,nil,1,2,][prev]} 
+    #@degree_picker = L {|prev| [nil,4,5,6,7,1,2,3][prev]}
+
+    @degree_picker = L {|prev| [nil,4,nil,nil,5,1][prev]}
+
     @scale = @root_note.send(@scale_name)
     @chord, @chord_name = @chord_picker[@scale,@degree,@scale.valid_chord_names_for_degree(1).pick]
     @roll = {} # improv*note*step  (each improv lambda gets its own 2-d piano roll to paint with probys)
     @improv = {} #to contain different improv strategies i guess.. i only have @improv[:chords] right now.
-
-    if @options_file and File.exists?(@options_file)
-      eval(File.read(@options_file))
-    end
-
     puts "#{@root_note.name} #{@scale_name}, degree #{@degree},  #{@chord_name}"
   end
   
@@ -29,11 +30,9 @@ class PianoRoll
                           :next => nil,
                           :root_note => @root_note,
                           :scale_name => @scale_name,
-                          :degree => @degree_picker[@degree,@scale_name],
+                          :degree => @degree_picker[@degree],
                           :chord_picker => @chord_picker,
                           :roll => {},
-                          :options_file => @options_file,
-                          :improvs_file => @improvs_file,                          
                           :logging => @logging)
 
     evolve_probs
@@ -58,14 +57,33 @@ class PianoRoll
   end
 
   def evolve_probs
-    #defining the improv lambdas
-    if @improvs_file and File.exists?(@improvs_file)
-      eval(File.read(@improvs_file))
-    end
-   
-    #actually calling the lambdas here 
-    @improv[:chords][self,:chords,@match_by_value]
-
+    
+    #improv lambdas which can paint the piano roll however they want.
+    #the piano roll has a @next pointing to the next measure's piano roll, whose
+    # root_note, scale, and chord are known and accessible data at this point.
+    #I'm thinking a bassline improv lambda could ask what the next measure's
+    # piano roll's chord is and then decide how best to walk towards it as it
+    # paints the current piano roll.  sort-of sight-reading
+    
+    match_by_name = L {|chord,note| chord.contains_note_names_of?(Note.new(note))}
+    match_by_value = L {|chord,note| chord.contains_note_value?(note)}
+    
+    @improv[:chords] = L{ |pr,name,test|
+      spark = [1.0,1.0,1.0,0.0]
+      if !pr.roll.has_key?(name)
+        pr.roll[name] = {}
+      end          
+      (60..84).each do |note|  
+        if !pr.roll[name].has_key?(note)
+          pr.roll[name][note] = [0.0] * 4
+        end
+        if test[chord,note] #pr.chord.contains_note_value?(note)
+          pr.roll[name][note] = spark.map{|n| n + rand(5)*0.1}
+        end
+      end
+    }   
+    
+    @improv[:chords][self,:chords,match_by_value]
     
     #TODO: add another improv lambda for either lead or bassline.  provide functions like
     # aggregate row and column density so lambdas can decide to "fill in the gaps" a little.
@@ -118,11 +136,8 @@ rollo = PianoRoll.new(
       		#:chord_picker => harmonized_root_chord_picker,
       		#:chord_picker => [degree_chord_picker,harmonized_root_chord_picker].pick,
           :roll => {},
-          #:queue => [60,63,60,60,64,60,58],  i guess i'm not even using the queue yet.. 
-          :queue => [],
+          :queue => [60,63,60,60,64,60,58],
           :cloner => L{|pr| pr = pr.next},
-          :options_file => 'PianoRoll.opts.rb',
-          :improvs_file => 'improvs.rb',
           :logging => true)
 
 rollo.go
