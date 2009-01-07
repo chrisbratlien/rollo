@@ -1,0 +1,8 @@
+
+#TODO: add another improv lambda for either lead or bassline.  provide functions like
+# aggregate row and column density so lambdas can decide to "fill in the gaps" a little.
+# especially the :lead improv because melodies are more like the plotted line, and less
+# like the x-axis.  the key vs the pins and tumblers,
+# also, what about a :kamikaze lambda whose performance is to dodge the obstacles in
+# the current measure, survivng long enough to crash into an obstacle at the beginning
+# of the next measure  (ok that's just a walking bassline stated more dramatically)

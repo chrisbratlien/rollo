@@ -12,15 +12,9 @@ class PianoRoll
     %w{midi next root_note scale_name degree chord_picker roll queue options_file improvs_file logging}.each do |attribute|
       eval("@#{attribute} = attributes[:#{attribute}]")
     end 
-    @scale = @root_note.send(@scale_name)
-    @chord, @chord_name = @chord_picker[@scale,@degree,@scale.valid_chord_names_for_degree(1).pick]
-    @roll = {} # improv*note*step  (each improv lambda gets its own 2-d piano roll to paint with probys)
-    @improv = {} #to contain different improv strategies i guess.. i only have @improv[:chords] right now.
-
     if @options_file and File.exists?(@options_file)
       eval(File.read(@options_file))
     end
-
     puts "#{@root_note.name} #{@scale_name}, degree #{@degree},  #{@chord_name}"
   end
   
@@ -29,6 +23,7 @@ class PianoRoll
                           :next => nil,
                           :root_note => @root_note,
                           :scale_name => @scale_name,
+                          :scale => @scale,
                           :degree => @degree_picker[@degree,@scale_name],
                           :chord_picker => @chord_picker,
                           :roll => {},
@@ -39,16 +34,18 @@ class PianoRoll
     evolve_probs
       
     (1..4).each do |measure|
-      #puts "\a" if measure == 1
+      puts "\a" if measure == 1
       (0..3).each do |step|
         collect_for_this_step = []
-        (60..84).each do |note|
-          if rand < @roll[:chords][note][step]
-            collect_for_this_step << note
+        $pr_player_note_range.each do |note|
+          @roll.keys.each do |improv|
+            if rand < @roll[improv][note][step]
+              collect_for_this_step << note
+            end  
           end
         end
         puts "#{measure}.#{step+1} #{collect_for_this_step.inspect.to_s}"
-        @midi.play collect_for_this_step, 0.25
+        @midi.play collect_for_this_step, $base_duration
       end
     end
     puts
@@ -62,14 +59,6 @@ class PianoRoll
     if @improvs_file and File.exists?(@improvs_file)
       eval(File.read(@improvs_file))
     end
-    
-    #TODO: add another improv lambda for either lead or bassline.  provide functions like
-    # aggregate row and column density so lambdas can decide to "fill in the gaps" a little.
-    # especially the :lead improv because melodies are more like the plotted line, and less
-    # like the x-axis.  the key vs the pins and tumblers,
-    # also, what about a :kamikaze lambda whose performance is to dodge the obstacles in
-    # the current measure, survivng long enough to crash into an obstacle at the beginning
-    # of the next measure  (ok that's just a walking bassline stated more dramatically)
   end
 end
 
@@ -79,7 +68,6 @@ midi.autodetect_driver
 #midi.use :dls_synth
 #include MIDIator::Notes
 
-favorite_scales = L{Note.random_scale_method}
 generate_scale = L{|note,scale_name| note.send(scale_name)}
 
 generate_chord = L{|scale,degree| 
