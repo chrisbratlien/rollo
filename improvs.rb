@@ -24,7 +24,7 @@
   @init_improv_pr[:chords,self]  
   a = [1.0,1.0,1.0,0.0]
   b = [0.99,rand,rand,rand]
-  probs = [a,b].pick
+  probs = a # [a,b].pick
   opts[:pov].each do |note|  
     if opts[:test][chord,note]
       #pr.roll[name][note] = probs.map{|n| n + rand(5)*0.1}
@@ -38,13 +38,19 @@ end
 @improv[:lead] = L do |opts|
   @init_improv_pr[:lead,self]
   (0..3).each{ |step|
-    candidates = opts[:pov].select{|n| opts[:test][scale,n]}
-    roll[:lead][candidates.pick][step] = rand/2 }
+    simult = opts[:simult] || 1    
+    #puts simult
+    if simult == 1
+      candidates = opts[:pov].select{|n| opts[:test][scale,n]}
+    else
+      candidates = opts[:pov].select{|n| opts[:test][chord,n]}
+    end  
+    simult.times {  roll[:lead][candidates.pick][step] = rand } }
 end              
 
 @improv[:clash] = L do |opts|
   @init_improv_pr[opts[:name],self] and puts "MUHAHAHAH!!! RAAAAHW!"
-  opts[:pov].each { |note| roll[:clash][note] = [nil,nil,nil,nil].map{|n| rand} }              
+  opts[:pov].each { |note| roll[:clash][note] = [nil,nil,nil,nil].map{|n| rand/2} }              
 end
 
 
@@ -54,11 +60,18 @@ end
 
 
 #actually calling the lambdas here 
-@improv[:chords][:name => :chords, :test => @note_value_match,:pov => chord.notes[0].value..chord.notes[1].value]
+#@improv[:chords][:name => :chords, :test => @note_value_match,:pov => chord.notes.first.value..chord.notes.last.value]
 
 
-#@improv[:lead][:test => @note_name_match, :pov => [(68..84)].pick]
+#@improv[:chords][:name => :chords, :test => @note_name_match,:pov => chord.notes.first.value-24..chord.notes.last.value-7]
+
+
+@improv[:lead][:test => @note_name_match, :pov => [(68..77)].pick]
+@improv[:lead][:test => @note_name_match, :simult => 5, :pov => [(38..57)].pick]
+
+
+
 
 #DANGER, this improv is SPOOOOKY
-#@improv[:clash][:name => :clash, :pov => 60..110]
+#@improv[:clash][:name => :clash, :pov => [(50..65),(75..90),(80..95)].pick]
           

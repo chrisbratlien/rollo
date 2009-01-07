@@ -1,8 +1,8 @@
 #This file gets loaded in for each measure so you should hear your changes soon afterward
 
 #$pr_player_note_range = (0..127)
-$pr_player_note_range = (36..90)
-$base_duration = 0.30
+$pr_player_note_range = (36..110)
+$base_duration = 2.0
 
 
 #@scale_name = :major_scale
