@@ -76,8 +76,8 @@ end
 #@improv[:lead][:name => :b, :test => @note_name_match, :simult => 2, :pov => (44..55)]
 @improv[:lead][:name => :c, :test => @note_name_match, :simult => 2, :pov => (55..66)]
 @improv[:lead][:name => :d, :test => @note_name_match, :simult => 2, :pov => (66..77)]
-#@improv[:lead][:name => :e, :test => @note_name_match, :simult => 2, :pov => (77..88)]
-@improv[:lead][:name => :f, :test => @note_name_match, :simult => 1, :pov => (88..99)]
+@improv[:lead][:name => :e, :test => @note_name_match, :simult => 2, :pov => (77..88)]
+#@improv[:lead][:name => :f, :test => @note_name_match, :simult => 1, :pov => (88..99)]
 
 
 #DANGER, this improv is SPOOOOKY
