@@ -4,7 +4,7 @@
 # call to go(@now).  Because evolve_probs gets called from inside go, the @now variable
 # is visible in the improvs.rb file getting read in.
 $options_have_loaded = true
-puts "reloading options"
+#puts "reloading options"
 
 
 @step_tick = L {|current,bpm,spbeat|
@@ -17,12 +17,11 @@ puts "reloading options"
   result
 }
 
-
 #$pr_player_note_range = (0..127)
 $pr_player_note_range = (36..110)
 #$base_duration = 0.4   #i need to redo this to be tempo i guess
 $send_midi_clock = false
-$bpm = 100 #beats per minute (really!)
+$bpm = 400 #beats per minute (really!)
 $beats_per_measure = 4
 $steps_per_beat = 1  #sequencer steps per beat
 $steps_per_measure = $steps_per_beat * $beats_per_measure #sequencer steps per measure

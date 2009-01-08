@@ -1,7 +1,12 @@
 #This file is read in during every call to evolve_probs for live-editing
 $improvs_have_loaded = true
-puts "reloading improvs"
+#puts "reloading improvs"
 #self.class = PianoRoll is our scope.
+
+
+#supposedly I'm doing all this so the next chord is visible
+
+puts "(current) #{@degree} -> #{@next.degree} (next)"
 
 #improv lambdas which can paint the piano roll however they want.
 #the piano roll has a @next pointing to the next measure's piano roll, whose
@@ -63,7 +68,7 @@ end
 #@improv[:chords][:name => :chords, :test => @note_value_match,:pov => chord.notes.first.value..chord.notes.last.value]
 
 
-@improv[:chords][:name => :chords, :test => @note_name_match,:pov => chord.notes.first.value-24..chord.notes.last.value-7]
+#@improv[:chords][:name => :chords, :test => @note_name_match,:pov => chord.notes.first.value-24..chord.notes.last.value-7]
 
 
 #@improv[:lead][:test => @note_name_match, :pov => [(68..77)].pick]
