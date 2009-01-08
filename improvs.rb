@@ -19,22 +19,24 @@ puts "(current) #{@degree} -> #{@next.degree} (next)"
 @note_value_match = L {|foo,note| foo.contains_note_value?(note)}
 @pov = L {|foo,pr|}
 
-@init_improv_pr = L {|name,pr|
-  if !pr.roll.has_key?(name)
-     pr.roll[name] = {}
-     (0..127).each{|n| pr.roll[name][n] = [0.0] * 4}
+@init_improv = L {|opts,pr|
+  if !pr.roll.has_key?(opts[:name])
+     pr.roll[opts[:name]] = {}
+     pr.roll[opts[:name]][:channel] = opts[:channel] || 0
+     pr.roll[opts[:name]][:probs] = {}
+     (0..127).each{|n| pr.roll[opts[:name]][:probs][n] = [0.0] * 4}
    end
 }
 
 @improv[:chords] = L do |opts|
-  @init_improv_pr[opts[:name],self]  
+  @init_improv[opts,self]  
   a = [1.0,1.0,1.0,0.0]
   b = [0.99,rand,rand,rand]
   probs = a # [a,b].pick
   opts[:pov].each do |note|  
     if opts[:test][chord,note]
       #pr.roll[name][note] = probs.map{|n| n + rand(5)*0.1}
-      roll[opts[:name]][note] = probs.map{|n| rand}
+      roll[opts[:name]][:probs][note] = probs.map{|n| rand}
     end 
   end
 end   
@@ -42,7 +44,7 @@ end
 
 #one note at a time for this particular lead improv (notice candidates.pick to single out the one)
 @improv[:lead] = L do |opts|
-  @init_improv_pr[opts[:name],self]
+  @init_improv[opts,self]
   (0..3).each{ |step|
     simult = opts[:simult] || 1    
     #puts simult
@@ -51,12 +53,12 @@ end
     else
       candidates = opts[:pov].select{|n| opts[:test][chord,n]}
     end  
-    simult.times {  roll[opts[:name]][candidates.pick][step] = rand } }
+    simult.times {  roll[opts[:name]][:probs][candidates.pick][step] = rand } }
 end              
 
 @improv[:clash] = L do |opts|
-  @init_improv_pr[opts[:name],self] and puts "MUHAHAHAH!!! RAAAAHW!"
-  opts[:pov].each { |note| roll[opts[:name]][note] = [nil,nil,nil,nil].map{|n| rand/2} }              
+  @init_improv[opts[:name],self] and puts "MUHAHAHAH!!! RAAAAHW!"
+  opts[:pov].each { |note| roll[opts[:name]][:probs][note] = [nil,nil,nil,nil].map{|n| rand/2} }              
 end
 
 # end of defining the lambdas
@@ -68,18 +70,18 @@ end
 #@improv[:chords][:name => :chords1, :test => @note_value_match,:pov => chord.notes.first.value..chord.notes.last.value]
 
 
-#@improv[:chords][:name => :chords2, :test => @note_name_match,:pov => chord.notes.first.value-24..chord.notes.last.value-7]
+#@improv[:chords][:name => :chords2, :test => @note_name_match, :channel => 0, :pov => chord.notes.first.value..chord.notes.last.value]
 
 
 #just because the improv is called :lead doesn't mean you can't use it all over
-@improv[:lead][:name => :a, :test => @note_name_match, :simult => 1, :pov => (33..44)]
-#@improv[:lead][:name => :b, :test => @note_name_match, :simult => 2, :pov => (44..55)]
-@improv[:lead][:name => :c, :test => @note_name_match, :simult => 2, :pov => (55..66)]
-@improv[:lead][:name => :d, :test => @note_name_match, :simult => 2, :pov => (66..77)]
-@improv[:lead][:name => :e, :test => @note_name_match, :simult => 2, :pov => (77..88)]
-#@improv[:lead][:name => :f, :test => @note_name_match, :simult => 1, :pov => (88..99)]
+@improv[:lead][:name => :a, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (33..44)]
+#@improv[:lead][:name => :b, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (44..55)]
+@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (55..66)]
+#@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (66..77)]
+@improv[:lead][:name => :e, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (77..88)]
+#@improv[:lead][:name => :f, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (88..99)]
 
 
 #DANGER, this improv is SPOOOOKY
-#@improv[:clash][:name => :clash, :pov => [(50..65),(75..90),(80..95)].pick]
+#@improv[:clash][:name => :clash, :channel => 0, :pov => [(50..65),(75..90),(80..95)].pick]
           

@@ -2,7 +2,7 @@ h1. Rollo
 
 h2. Sample
 
-Here's Rollo <a href="http://dropafew.com/music/rollo20090108.mp3">playing</a> through Propellerhead Reason's Hall Piano
+Here's an <a href="http://dropafew.com/music/rollo20090108.mp3">MP3</a> of Rollo playing through Propellerhead Reason's Hall Piano
 
 h2. Installation
 

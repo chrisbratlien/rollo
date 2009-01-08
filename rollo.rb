@@ -55,11 +55,13 @@ class PianoRoll
     end
     
     (0..$steps_per_measure-1).each do |step|
-      collect_for_this_step = []
+      collect_for_this_step = {}
       $pr_player_note_range.each do |note|
-        @roll.keys.each do |improv|
-          if rand < @roll[improv][note][step]
-            collect_for_this_step << note
+        @roll.keys.each do |name|
+          chan = @roll[name][:channel]
+          collect_for_this_step[chan] = [] if !collect_for_this_step[chan]
+          if rand < @roll[name][:probs][note][step]
+            collect_for_this_step[chan] << note
           end  
         end
       end
@@ -70,8 +72,10 @@ class PianoRoll
         24.times {@midi.driver.clock}
       end
       @timer.at(@start + @now) do
-        puts "#{collect_for_this_step.inspect.to_s}"     
-        @midi.play(collect_for_this_step,0.25,0,100)
+        collect_for_this_step.keys.each do |chan|      
+          puts "channel #{chan} #{collect_for_this_step[chan].inspect.to_s}"
+          @midi.play(collect_for_this_step[chan],0.25,chan,100)
+        end
       end        
       #@timer.at(@start + @now) do 
       #  puts "#{collect_for_this_step.inspect.to_s}"     
