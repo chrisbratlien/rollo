@@ -34,12 +34,12 @@ $step_dt = @step_tick[0,$bpm,$steps_per_beat]
 
 $measure_dt = @measure_tick[0,$bpm,3]
 
-puts "bpm: #{$bpm} bpmeas: #{$beats_per_measure} spb: #{$steps_per_beat} sdt:#{$step_dt} mdt: #{$measure_dt}"
+#puts "bpm: #{$bpm} bpmeas: #{$beats_per_measure} spb: #{$steps_per_beat} sdt:#{$step_dt} mdt: #{$measure_dt}"
 
 #@scale_name = :major_scale
 @scale = @root_note.send(@scale_name)
 @chord, @chord_name = @chord_picker[@scale,@degree,@scale.valid_chord_names_for_degree(1).pick]
-@roll = {} # improv*note*step  (each improv lambda gets its own 2-d piano roll to paint with probys)
+@roll = {} # name*note*step  (each improv lambda gets its own 2-d piano roll to paint with probys)
 @improv = {} #to contain different improv strategies i guess.. i only have @improv[:chords] right now.
 
 #puts @now
