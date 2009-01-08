@@ -1,5 +1,6 @@
 #This file is read in during every call to evolve_probs for live-editing
-
+$improvs_have_loaded = true
+puts "reloading improvs"
 #self.class = PianoRoll is our scope.
 
 #improv lambdas which can paint the piano roll however they want.
@@ -66,7 +67,7 @@ end
 
 
 #@improv[:lead][:test => @note_name_match, :pov => [(68..77)].pick]
-@improv[:lead][:test => @note_name_match, :simult => 5, :pov => [(38..57)].pick]
+@improv[:lead][:test => @note_name_match, :simult => rand(4)+1, :pov => [(48..77)].pick]
 
 
 

@@ -5,12 +5,12 @@ require 'rb-music-theory'
 
 class PianoRoll
 
-  attr_reader :next, :root_note,:scale_name, :scale, :roll, :chord, :degree_picker
+  attr_reader :next,  :root_note,:scale_name, :scale, :roll, :chord, :degree_picker
   attr_accessor :now
   
   def initialize(attributes = {})	
     #puts "FELLAS I'M READY TO GETUP AND DO #{self} THANG"
-    %w{midi next timer start root_note scale_name degree chord_picker roll queue options_file improvs_file logging }.each do |attribute|
+    %w{midi next timer start root_note measure scale_name degree chord_picker roll queue options_file improvs_file logging }.each do |attribute|
       eval("@#{attribute} = attributes[:#{attribute}]")
     end 
     
@@ -19,8 +19,16 @@ class PianoRoll
         end
   end
   
-  def go(now = 0)  #now is the offset from start... i.e. the current time position         
-    @now = now # you've got an importand job to do, son
+  def go(old_pr)  #now is the offset from start... i.e. the current time position         
+     if !old_pr
+        @now = 0
+    else
+        @now = old_pr.now
+    end
+     old_pr = nil
+     
+     puts "TIMER QUEUE: #{@timer.queue.size}"
+    #############@now = now # you've got an importand job to do, son
     #puts @now
     #I WONDER: what if i just send the whole friggin attributes as the argument?
     @next = PianoRoll.new(
@@ -28,6 +36,7 @@ class PianoRoll
         :midi => @midi,
         :timer => @timer,
         :start => @start,
+        :measure => @measure + 1,
         #:now => @now,  #the problem here is that this value will be old by the time this "next" PianoRoll "go"es
         :root_note => @root_note,
         :scale_name => @scale_name,
@@ -49,10 +58,13 @@ class PianoRoll
 #    @improv || evolve_probs 
 
 
-    @live = L { |newnow| @next.go(newnow) }
+    @live = L { |newnow| @next.go(self) }
+    @kill_me = L {|you| 
+        puts "I've seen...time to die!"
+        you = nil }
+    
     @gen = L do |t|
         evolve_probs 
-        (1..4).each do |measure|
            (0..$steps_per_measure-1).each do |step|
                 collect_for_this_step = []
                 $pr_player_note_range.each do |note|
@@ -69,12 +81,15 @@ class PianoRoll
                   24.times {@midi.driver.clock}
                 end
                 @timer.at(t) { 
-                        puts "#{measure}.#{step+1} #{collect_for_this_step.inspect.to_s}"
+                        puts "#{@measure}.#{step+1} #{collect_for_this_step.inspect.to_s}"
                         @midi.play collect_for_this_step, 0.25                 
                 }
                 t  += $step_dt
             end
-        end
+        #
+        
+        #sleep(1)
+        @kill_me[self] 
         @live[t]
     end
 
@@ -135,6 +150,7 @@ rollo = PianoRoll.new(
     :midi => midi,
     :timer => timer,   #MIDIator::Interface
     :start => start,   #Time.now.to_f (above)
+    :measure => 1,
     :root_note => Note.new(rand(20) + 45),
     :scale_name => favorite_scales[],
     :degree => 1,
@@ -148,4 +164,4 @@ rollo = PianoRoll.new(
     :improvs_file => 'improvs.rb',
     :logging => true)
 
-rollo.go(0) #passing zero is optional here.
+rollo.go(nil) #passing zero is optional here.

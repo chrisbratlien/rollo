@@ -2,7 +2,7 @@
 
 #$pr_player_note_range = (0..127)
 $pr_player_note_range = (36..110)
-$base_duration = 2.0
+$base_duration = 0.5
 
 
 #@scale_name = :major_scale

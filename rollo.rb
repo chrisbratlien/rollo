@@ -34,7 +34,7 @@ class PianoRoll
     evolve_probs
       
     (1..4).each do |measure|
-      puts "\a" if measure == 1
+      #puts "\a" if measure == 1
       (0..3).each do |step|
         collect_for_this_step = []
         $pr_player_note_range.each do |note|
@@ -45,7 +45,8 @@ class PianoRoll
           end
         end
         puts "#{measure}.#{step+1} #{collect_for_this_step.inspect.to_s}"
-        @midi.play collect_for_this_step, $base_duration
+        24.times { @midi.driver.message(0xF8) }
+	@midi.play collect_for_this_step, $base_duration
       end
     end
     puts

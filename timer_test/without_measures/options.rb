@@ -22,7 +22,7 @@ puts "reloading options"
 $pr_player_note_range = (36..110)
 #$base_duration = 0.4   #i need to redo this to be tempo i guess
 $send_midi_clock = false
-$bpm = 170 #beats per minute (really!)
+$bpm = 100 #beats per minute (really!)
 $beats_per_measure = 4
 $steps_per_beat = 1  #sequencer steps per beat
 $steps_per_measure = $steps_per_beat * $beats_per_measure #sequencer steps per measure
