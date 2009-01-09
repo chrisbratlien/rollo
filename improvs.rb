@@ -57,7 +57,7 @@ end
 end              
 
 @improv[:clash] = L do |opts|
-  @init_improv[opts[:name],self] and puts "MUHAHAHAH!!! RAAAAHW!"
+  @init_improv[opts,self] and puts "MUHAHAHAH!!! RAAAAHW!"
   opts[:pov].each { |note| roll[opts[:name]][:probs][note] = [nil,nil,nil,nil].map{|n| rand/2} }              
 end
 
@@ -73,12 +73,11 @@ end
 #@improv[:chords][:name => :chords2, :test => @note_name_match, :channel => 0, :pov => chord.notes.first.value..chord.notes.last.value]
 
 
-#just because the improv is called :lead doesn't mean you can't use it all over
-@improv[:lead][:name => :a, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (33..44)]
-#@improv[:lead][:name => :b, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (44..55)]
-@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (55..66)]
-#@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (66..77)]
-@improv[:lead][:name => :e, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (77..88)]
+#@improv[:lead][:name => :a, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (33..44)]
+#@improv[:lead][:name => :b, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (44..55)]
+#@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (55..66)]
+#@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 4, :pov => (66..77)]
+#@improv[:lead][:name => :e, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (77..88)]
 #@improv[:lead][:name => :f, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (88..99)]
 
 

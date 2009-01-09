@@ -2,6 +2,9 @@ h1. Rollo
 
 h2. Sample
 
+Here's a <a href="http://dropafew.com/music/iShowU-Capture8.mov">Screencast</a> demoing live changes to
+the improv lambda calls (I haven't decided on what OSX screencasting software I like yet).
+
 Here's an <a href="http://dropafew.com/music/rollo20090108.mp3">MP3</a> of Rollo playing through Propellerhead Reason's Hall Piano
 
 h2. Installation
@@ -41,6 +44,4 @@ Eventually I'd like to give each improv lambda tools to ask where the gaps are. 
 lambdas may want to queue their notes/prob's in a less crowded area of the piano roll.  But then again that may be a completely
 stupid thing to do.  Lots of music doubles up.   I'd also like to swap these improvs in and out too as the progression unfolds
 
-I'm heavily under the influence of <a href="https://github.com/gilesbowkett/archaeopteryx/tree">Arkx</a> these days, so I must give a
-huge thanks to Giles Bowkett for his insight.
-
+I'm learning a lot from <a href="https://github.com/gilesbowkett/archaeopteryx/tree">Archaeopteryx</a>, so I must give a huge thank you to <a href="http://gilesbowkett.blogspot.com/">Giles Bowkett</a> for his insight.
