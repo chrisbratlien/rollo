@@ -7,34 +7,42 @@ $options_have_loaded = true
 #puts "reloading options"
 
 
-@step_tick = L {|current,bpm,spbeat|
-  result = 60.0/bpm.to_f/spbeat.to_f
-  result
+@sync_tick = L{ |bpm,syncs_per_qn|
+  60.0/bpm.to_f/syncs_per_qn.to_f
 }
 
-@measure_tick = L {|current,bpm,bpmeas|
-  result = 60.0*bpmeas.to_f/bpm.to_f
-  result
+@step_tick = L {|bpm,spbeat|
+60.0/bpm.to_f/spbeat.to_f
 }
+
+@measure_tick = L {|bpm,bpmeas|
+60.0*bpmeas.to_f/bpm.to_f
+}
+
+
 
 #$pr_player_note_range = (0..127)
 $pr_player_note_range = (36..110)
 #$base_duration = 0.4   #i need to redo this to be tempo i guess
-$send_midi_clock = false
-$bpm = 400 #beats per minute (really!)
-$beats_per_measure = 4
-$steps_per_beat = 1  #sequencer steps per beat
-$steps_per_measure = $steps_per_beat * $beats_per_measure #sequencer steps per measure
-
+$send_midi_clock = true
+$midi_sync_offset = 0.0  #-0.45
+$bpm = 170 #beats per minute (really!)
+$qtr_per_measure = 4
+$steps_per_qtr = 1  #sequencer steps per beat  #TR-909 would have 4 for this
+$steps_per_measure = $steps_per_qtr * $qtr_per_measure #sequencer steps per measure
+$syncs_per_qtr = 24   #MIDI clock syncs to send to Reason etc
+$syncs_per_measure = $syncs_per_qtr * $qtr_per_measure
+$syncs_per_step = $syncs_per_qtr / $steps_per_qtr
 
 #$interval = 60.0 / $bpm
 #@timer = MIDIator::Timer.new( $interval / 10 )
 
-$step_dt = @step_tick[0,$bpm,$steps_per_beat]
+$step_dt = @step_tick[$bpm,$steps_per_qtr]
+$measure_dt = @measure_tick[$bpm,3]
+$sync_dt = @sync_tick[$bpm,24]
 
-$measure_dt = @measure_tick[0,$bpm,3]
 
-#puts "bpm: #{$bpm} bpmeas: #{$beats_per_measure} spb: #{$steps_per_beat} sdt:#{$step_dt} mdt: #{$measure_dt}"
+#puts "bpm: #{$bpm} bpmeas: #{$qtr_per_measure} spb: #{$steps_per_qtr} sdt:#{$step_dt} mdt: #{$measure_dt}"
 
 #@scale_name = :major_scale
 @scale = @root_note.send(@scale_name)

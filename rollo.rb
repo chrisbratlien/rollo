@@ -27,10 +27,6 @@ class PianoRoll
       sleep(1)
     end
     
-    #@kill_me = L {|you| 
-    #    puts "I've seen...time to die!"
-    #    you = nil }
-
 
     #puts "TIMER QUEUE: #{@timer.queue.size}"
     @next.midi = @midi
@@ -49,48 +45,8 @@ class PianoRoll
     @next.logging = @logging
 
     evolve_probs
-    if $send_midi_clock and @now == 0
-      puts "Sending initial MIDI Start"
-      @midi.driver.start
-    end
-    
-    (0..$steps_per_measure-1).each do |step|
-      collect_for_this_step = {}
-      $pr_player_note_range.each do |note|
-        @roll.keys.each do |name|
-          chan = @roll[name][:channel]
-          collect_for_this_step[chan] = [] if !collect_for_this_step[chan]
-          if rand < @roll[name][:probs][note][step]
-            collect_for_this_step[chan] << note
-          end  
-        end
-      end
-      #puts "#{measure}.#{step+1} #{collect_for_this_step.inspect.to_s}"
-      # Send MIDI Clock (aka Midi Sync in Propellerhead Reason)
-      if $send_midi_clock
-        #24.times {@midi.driver.message(0xF8)}  #requires 24 pulses per quarter-note
-        24.times {@midi.driver.clock}
-      end
-      @timer.at(@start + @now) do
-        collect_for_this_step.keys.each do |chan|      
-          puts "channel #{chan} #{collect_for_this_step[chan].inspect.to_s}"
-          @midi.play(collect_for_this_step[chan],0.25,chan,100)
-        end
-      end        
-      #@timer.at(@start + @now) do 
-      #  puts "#{collect_for_this_step.inspect.to_s}"     
-      #  collect_for_this_step.each do |note|          
-      #    @midi.driver.note_on(note,0,100)
-      #  end
-      #end
-      #@timer.at(@start + @now + 0.5) do 
-      #  collect_for_this_step.each do |note|          
-      #    @midi.driver.note_off(note,0,100)
-      #  end
-      #end
-      @now  += $step_dt
-      #q << [collect_for_this_step,@now]
-    end
+    #puts @now
+    generate
     
     @next.go(self)
 
@@ -103,12 +59,48 @@ class PianoRoll
                 eval(File.read(@improvs_file))
         end
   end    
+
+
+  def generate
+    if $send_midi_clock and @now == 0.0
+      puts "Sending initial MIDI Start"
+      #@midi.driver.reset
+      @midi.driver.stop
+      @midi.driver.start
+    end
+    (0..$syncs_per_measure-1).each do |sync|      
+      # Send MIDI Clock (aka Midi Sync in Propellerhead Reason)
+      if sync % $syncs_per_step == 0
+        step = sync / $syncs_per_step          
+        collect_for_this_step = []
+
+        $pr_player_note_range.each do |note|
+          @roll.keys.each do |name|
+            chan = @roll[name][:channel]
+            #collect_for_this_step[chan] = [] if !collect_for_this_step[chan]
+            if rand < @roll[name][:probs][note][step]
+              collect_for_this_step << [note,chan,0.25,100]
+            end  
+          end
+        end
+        collect_for_this_step.each do |x|
+          n,c,d,v = x      
+          puts "channel #{c} #{n},#{d},#{v}"
+          @timer.at(@start + @now) { @midi.note_on(n,c,v) }
+          @timer.at(@start + @now + d) {@midi.note_off(n,0) }
+        end
+      end
+      @timer.at(@start + @now + $midi_sync_offset) { @midi.driver.clock }
+      @now += $sync_dt
+    end
+  end
+  
 end
 
 midi = MIDIator::Interface.new
 midi.autodetect_driver
 
-timer = MIDIator::Timer.new(60.0/120)
+timer = MIDIator::Timer.new(60.0/12000)
 start = Time.now.to_f
 
 #midi = MIDIator::Interface.new
@@ -146,7 +138,7 @@ rollo1 = PianoRoll.new(
     :midi => midi,
     :timer => timer,   #MIDIator::Interface
     :start => start,   #Time.now.to_f (above)
-    :now => 0, #current time offset from start, integer
+    :now => 0.to_f, #current time offset from start
     :measure => 1,
     :root_note => Note.new(rand(20) + 45),
     :scale_name => favorite_scales[],

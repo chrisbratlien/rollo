@@ -32,7 +32,7 @@ puts "(current) #{@degree} -> #{@next.degree} (next)"
   @init_improv[opts,self]  
   a = [1.0,1.0,1.0,0.0]
   b = [0.99,rand,rand,rand]
-  probs = a # [a,b].pick
+  probs = b # [a,b].pick
   opts[:pov].each do |note|  
     if opts[:test][chord,note]
       #pr.roll[name][note] = probs.map{|n| n + rand(5)*0.1}
@@ -40,6 +40,23 @@ puts "(current) #{@degree} -> #{@next.degree} (next)"
     end 
   end
 end   
+
+
+@improv[:bassline] = L do |opts|
+  @init_improv[opts,self]
+  puts chord_name
+  a = [0.6,0.3,0.5,0.3]
+  b = [0.9,0.8,0.7,0.8]
+  c = [rand,rand,rand,rand]
+  d = [1.0] * 4
+  probs = [a,b,c,d].pick
+  probs = d
+  opts[:pov].each do |note|
+    if Note.new(note).name == chord.notes.first.name #scale.degree(degree).value
+      roll[opts[:name]][:probs][note] = probs
+    end
+  end
+end
 
 
 #one note at a time for this particular lead improv (notice candidates.pick to single out the one)
@@ -72,13 +89,14 @@ end
 
 #@improv[:chords][:name => :chords2, :test => @note_name_match, :channel => 0, :pov => chord.notes.first.value..chord.notes.last.value]
 
-
-#@improv[:lead][:name => :a, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (33..44)]
-#@improv[:lead][:name => :b, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (44..55)]
-#@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (55..66)]
-#@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 4, :pov => (66..77)]
-#@improv[:lead][:name => :e, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (77..88)]
+#@improv[:lead][:name => :a, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (33..45)]
+#@improv[:lead][:name => :b, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (46..55)]
+@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 3, :pov => (56..77)]
+@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (78..88)]
+@improv[:lead][:name => :e, :channel => 2, :test => @note_name_match, :simult => 2, :pov => (77..88)]
 #@improv[:lead][:name => :f, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (88..99)]
+
+@improv[:bassline][:name => :boots, :channel => 1, :test => @note_name_match, :simult => 1, :pov => (44..66)]
 
 
 #DANGER, this improv is SPOOOOKY
