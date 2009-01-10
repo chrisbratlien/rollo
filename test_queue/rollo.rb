@@ -5,36 +5,39 @@ require 'rb-music-theory'
 
 class PianoRoll
 
-  attr_accessor :midi, :timer, :start, :measure, :degree, :chord_picker, :options_file, :root_note, :scale_name, :scale, :roll, :chord, :degree_picker
+  attr_accessor :midi, :on_timer, :off_timer, :start, :measure, :degree, :chord_picker, :options_file, :root_note, :scale_name, :scale, :roll, :chord, :degree_picker
   attr_accessor :improvs_file, :logging, :chord_name
   attr_accessor :now, :next
   
   def initialize(attributes = {})	
     #puts "FELLAS I'M READY TO GETUP AND DO #{self} THANG"
-    %w{midi next timer start root_note measure scale_name degree chord_picker roll queue options_file improvs_file logging now}.each do |attribute|
+    %w{midi next on_timer off_timer start root_note measure scale_name degree chord_picker roll queue options_file improvs_file logging now}.each do |attribute|
       eval("@#{attribute} = attributes[:#{attribute}]")
-    end 
+    end
   end
   
   def go(old_pr)  #now is the offset from start... i.e. the current time position         
     @now = old_pr.now if old_pr
+    
+    @test = Time.now.to_f
+    #@now = @test if @now < @test  #if you're behind, catch up to real now
+  
+    puts "measure is #{@measure}"
     if @options_file and File.exists?(@options_file)
      eval(File.read(@options_file))
     end
- 
-    while @timer.queue.size > 5
-      #puts "waiting..."
-      sleep(1)
-    end
-    
-    #@kill_me = L {|you| 
-    #    puts "I've seen...time to die!"
-    #    you = nil }
 
+    puts "going.. on measure #{@measure}"
+    #while @on_timer.queue.size > 5
+    #  #puts "waiting..."
+    #  sleep(1)
+    #end
+    
 
     #puts "TIMER QUEUE: #{@timer.queue.size}"
     @next.midi = @midi
-    @next.timer = @timer
+    @next.on_timer = @on_timer
+    @next.off_timer = @off_timer
     @next.next = self
     @next.start = @start
     @next.measure = @measure + 1
@@ -48,48 +51,57 @@ class PianoRoll
     @next.improvs_file = @improvs_file
     @next.logging = @logging
 
-    evolve_probs
-    if $send_midi_clock and @now == 0
-      puts "Sending initial MIDI Start"
-    #  @midi.driver.message(0xFA)  #requires 24 pulses per quarter-note
-    end
-    
-    (0..$steps_per_measure-1).each do |step|
-      collect_for_this_step = []
-      $pr_player_note_range.each do |note|
-        @roll.keys.each do |improv|
-          if rand < @roll[improv][note][step]
-            collect_for_this_step << note
-          end  
+    #puts @now
+    ##generate(self)
+ 
+    generate = L do 
+      evolve_probs
+
+      if $send_midi_clock and @now == 0.0
+        puts "Sending initial MIDI Start"
+        #@midi.driver.reset
+        @midi.driver.message(0xFA)
+        #@midi.driver.start
+      end
+      
+      queue = []
+      (0..$steps_per_measure-1).each do |step|
+        queue[step] = []
+        $pr_player_note_range.each do |note|
+          @roll.keys.each do |name|
+            chan = @roll[name][:channel]
+            #collect_for_this_step[chan] = [] if !collect_for_this_step[chan]
+            if rand < @roll[name][:probs][note][step]
+              queue[step] << [note,chan,0.25,100]
+            end  
+          end
         end
       end
-      #puts "#{measure}.#{step+1} #{collect_for_this_step.inspect.to_s}"
-      # Send MIDI Clock (aka Midi Sync in Propellerhead Reason)
-      if $send_midi_clock
-        24.times {@midi.driver.message(0xF8)}  #requires 24 pulses per quarter-note
-        #24.times {@midi.driver.clock}
-      end
-      @timer.at(@start + @now) do
-        puts "#{collect_for_this_step.inspect.to_s}"     
-        @midi.play(collect_for_this_step,0.25,0,100)
-      end        
-      #@timer.at(@start + @now) do 
-      #  puts "#{collect_for_this_step.inspect.to_s}"     
-      #  collect_for_this_step.each do |note|          
-      #    @midi.driver.note_on(note,0,100)
-      #  end
-      #end
-      #@timer.at(@start + @now + 0.5) do 
-      #  collect_for_this_step.each do |note|          
-      #    @midi.driver.note_off(note,0,100)
-      #  end
-      #end
-      @now  += $step_dt
-      #q << [collect_for_this_step,@now]
-    end
-    
-    @next.go(self)
+      #puts queue.inspect.to_s
+      (0..$syncs_per_measure-1).each do |sync|      
+        # Send MIDI Clock (aka Midi Sync in Propellerhead Reason)
+        if sync % $syncs_per_step == 0
+          step = sync / $syncs_per_step  
+          #puts queue[step].inspect.to_s
+          queue[step].each do |x|
+            n,c,d,v = x      
+            puts "channel #{c} #{n},#{d},#{v}"
+            @on_timer.at(@start + @now) { @midi.note_on(n,c,v) }
 
+            @off_timer.at(@start + @now + d) {@midi.note_off(n,0) }
+          end
+        end
+        #puts "huzzuh"
+        @on_timer.at(@start + @now + $midi_sync_offset) { @midi.driver.message(0xF8) }
+        @now += $sync_dt
+      end
+        
+      #regen = L {c[c,@now]}
+      #@timer.at(@start + @now + $measure_dt) {@next.go(self)}
+    end
+    generate[]
+    @next.go(self)
+    
   # Ahh! a cliff!  
   end
 
@@ -99,12 +111,16 @@ class PianoRoll
                 eval(File.read(@improvs_file))
         end
   end    
+
+
+  
 end
 
 midi = MIDIator::Interface.new
 midi.autodetect_driver
 
-timer = MIDIator::Timer.new(60.0/120)
+on_timer = MIDIator::Timer.new(0.0147)
+off_timer = MIDIator::Timer.new(0.0147)
 start = Time.now.to_f
 
 #midi = MIDIator::Interface.new
@@ -140,9 +156,10 @@ favorite_scales = L {["mixolydian_scale",  "major_scale", "lydian_scale","natura
 rollo1 = PianoRoll.new(
     :next => nil,
     :midi => midi,
-    :timer => timer,   #MIDIator::Interface
+    :on_timer => on_timer,   #MIDIator::Interface
+    :off_timer => off_timer,
     :start => start,   #Time.now.to_f (above)
-    :now => 0, #current time offset from start, integer
+    :now => 0.to_f, #current time offset from start
     :measure => 1,
     :root_note => Note.new(rand(20) + 45),
     :scale_name => favorite_scales[],
@@ -160,7 +177,8 @@ rollo1 = PianoRoll.new(
 rollo2 = PianoRoll.new(
     :next => rollo1,
     :midi => midi,
-    :timer => rollo1.timer,   #MIDIator::Interface
+    :on_timer => rollo1.on_timer,   #MIDIator::Interface
+    :off_timer => rollo1.off_timer,   #MIDIator::Interface
     :start => rollo1.start,   #Time.now.to_f (above)
     :measure => nil,
     :root_note => Note.new(rand(20) + 45),
