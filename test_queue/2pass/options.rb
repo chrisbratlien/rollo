@@ -67,7 +67,7 @@ related_picker = L {|prev,scale_name|
 
 @degree_picker = related_picker
 #@num_gen = L{0.9}
-@num_gen = L{0.0}
+@num_gen = L{rand}
 
 
 

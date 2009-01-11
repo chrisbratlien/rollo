@@ -7,12 +7,13 @@ class PianoRoll
 
   attr_accessor :midi, :on_timer, :off_timer, :start, :measure, :degree, :chord_picker, :options_file, :root_note, :scale_name, :scale, :roll, :chord, :degree_picker
   attr_accessor :improvs_file, :logging, :chord_name
-  attr_accessor :now, :next
+  attr_accessor :now, :next, :song_queue
   
   def initialize(attributes = {})	
     #puts "FELLAS I'M READY TO GETUP AND DO #{self} THANG"
     %w{midi next on_timer off_timer start root_note measure scale_name degree chord_picker roll queue options_file improvs_file logging now}.each do |attribute|
       eval("@#{attribute} = attributes[:#{attribute}]")
+    @song_queue = []
     end
   end
   
@@ -36,6 +37,7 @@ class PianoRoll
 
     #puts "TIMER QUEUE: #{@timer.queue.size}"
     @next.midi = @midi
+    @next.song_queue = @song_queue
     @next.on_timer = @on_timer
     @next.off_timer = @off_timer
     @next.next = self
@@ -50,58 +52,41 @@ class PianoRoll
     @next.options_file = @options_file
     @next.improvs_file = @improvs_file
     @next.logging = @logging
-
     #puts @now
     ##generate(self)
  
     generate = L do 
       evolve_probs
-
-      if $send_midi_clock and @now == 0.0
-        puts "Sending initial MIDI Start"
-        #@midi.driver.reset
-        @midi.driver.message(0xFA)
-        #@midi.driver.start
+      
+      [1,2,4,8].pick-1.times do
+        
+        queue = []
+        (0..$steps_per_measure-1).each do |step|
+          queue[step] = []
+          $pr_player_note_range.each do |note|
+            @roll.keys.each do |name|
+              chan = @roll[name][:channel]
+              #collect_for_this_step[chan] = [] if !collect_for_this_step[chan]
+              if @num_gen[] < @roll[name][:probs][note][step]
+                queue[step] << [note,chan,0.50,100]
+              end  
+            end
+          end
+        end
+        
+        @song_queue << queue
       end
       
-      queue = []
-      (0..$steps_per_measure-1).each do |step|
-        queue[step] = []
-        $pr_player_note_range.each do |note|
-          @roll.keys.each do |name|
-            chan = @roll[name][:channel]
-            #collect_for_this_step[chan] = [] if !collect_for_this_step[chan]
-            if @num_gen[] < @roll[name][:probs][note][step]
-              queue[step] << [note,chan,0.25,100]
-            end  
-          end
-        end
-      end
-      #puts queue.inspect.to_s
-      (0..$syncs_per_measure-1).each do |sync|      
-        # Send MIDI Clock (aka Midi Sync in Propellerhead Reason)
-        if sync % $syncs_per_step == 0
-          step = sync / $syncs_per_step  
-          #puts queue[step].inspect.to_s
-          queue[step].each do |x|
-            n,c,d,v = x      
-            puts "channel #{c} #{n},#{d},#{v}"
-            @on_timer.at(@start + @now) { @midi.note_on(n,c,v) }
-
-            @off_timer.at(@start + @now + d) {@midi.note_off(n,0) }
-          end
-        end
-        #puts "huzzuh"
-        @on_timer.at(@start + @now + $midi_sync_offset) { @midi.driver.message(0xF8) }
-        @now += $sync_dt
-      end
-        
       #regen = L {c[c,@now]}
       #@timer.at(@start + @now + $measure_dt) {@next.go(self)}
     end
     generate[]
-    @next.go(self)
-    
+
+    if @measure == 20
+      play
+    else
+      @next.go(self)
+    end
   # Ahh! a cliff!  
   end
 
@@ -113,6 +98,38 @@ class PianoRoll
   end    
 
 
+  def play
+    @now = Time.now.to_f
+    @start = 0.0
+
+      if $send_midi_clock and @now == 0.0
+        puts "Sending initial MIDI Start"
+        #@midi.driver.reset
+        @midi.driver.message(0xFA)
+        #@midi.driver.start
+      end
+      
+    @song_queue.each do |queue|
+      #puts queue.inspect.to_s
+      (0..$syncs_per_measure-1).each do |sync|      
+        # Send MIDI Clock (aka Midi Sync in Propellerhead Reason)
+        if sync % $syncs_per_step == 0
+          step = sync / $syncs_per_step  
+              puts queue[step].inspect.to_s
+         queue[step].each do |x|
+            n,c,d,v = x      
+            #puts "channel #{c} #{n},#{d},#{v}"
+            @on_timer.at(@start + @now) { @midi.note_on(n,c,v) }
+
+            @off_timer.at(@start + @now + d) {@midi.note_off(n,0) }
+          end
+        end
+        @on_timer.at(@start + @now + $midi_sync_offset) { @midi.driver.message(0xF8) }
+        @now += $sync_dt
+      end
+    end
+    sleep(10000)
+  end
   
 end
 

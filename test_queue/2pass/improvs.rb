@@ -30,7 +30,7 @@ puts "(current) #{@degree} -> #{@next.degree} (next)"
 
 @improv[:chords] = L do |opts|
   @init_improv[opts,self]  
-  a = [1.0,1.0,1.0,0.0]
+  a = [0.4,0.4,0.4,0.4]
   b = [0.99,rand,rand,rand]
   probs = b # [a,b].pick
   opts[:pov].each do |note|  
@@ -130,7 +130,7 @@ end
 
 
 #actually calling the lambdas here 
-#@improv[:chords][:name => :chords1, :test => @note_value_match,:pov => chord.notes.first.value..chord.notes.last.value]
+#@improv[:chords][:name => :chords1, :test => @note_value_match,:pov => chord.notes.first.value-24..chord.notes.last.value]
 
 
 #@improv[:chords][:name => :chords2, :test => @note_name_match, :channel => 0, :pov => chord.notes.first.value..chord.notes.last.value]
@@ -147,9 +147,13 @@ end
 #@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (50..70)]
 
 
-@improv[:arpeg][:name => :arp, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (50..70)]
+@improv[:lead][:name => :demo, :channel => 0, :test => @note_name_match, :simult => 5, :pov => (38..57)]
+@improv[:lead][:name => :demo2, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (68..77)]
 
-@improv[:eager_for_next][:name => :efn, :channel => 1, :test => @note_name_match, :simult => 1, :pov => (40..60)]
+
+#@improv[:arpeg][:name => :arp, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (50..70)]
+
+#@improv[:eager_for_next][:name => :efn, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (40..60)]
 
 
 #@improv[:bassline][:name => :boots, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (44..66)]
