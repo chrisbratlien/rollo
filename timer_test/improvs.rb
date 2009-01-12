@@ -66,8 +66,7 @@ end
 #@improv[:chords][:name => :chords, :test => @note_name_match,:pov => chord.notes.first.value-24..chord.notes.last.value-7]
 
 
-#@improv[:lead][:test => @note_name_match, :pov => [(68..77)].pick]
-@improv[:lead][:test => @note_name_match, :simult => rand(4)+1, :pov => [(48..77)].pick]
+#@improv[:lead][:test => @note_name_match, :pov => [(68..77)].pick]@improv[:lead][:test => @note_name_match, :simult => rand(4)+1, :pov => [(48..77)].pick]
 
 
 

@@ -5,8 +5,8 @@ $improvs_have_loaded = true
 
 
 #supposedly I'm doing all this so the next chord is visible
-
-puts "(current) #{@degree} -> #{@next.degree} (next)"
+puts "#{@root_note.name} #{@scale_name}"
+puts "degree/chord (current) #{@degree}/#{@chord_name} -> #{@next_degree}/#{@next_chord_name} (next)"
 
 #improv lambdas which can paint the piano roll however they want.
 #the piano roll has a @next pointing to the next measure's piano roll, whose
@@ -73,6 +73,36 @@ end
     simult.times {  roll[opts[:name]][:probs][candidates.pick][step] = rand } }
 end              
 
+@improv[:arpeg] = L do |opts|
+  @init_improv[opts,self]
+  
+  downbeats = L {|steps| steps.select{|n| n%2 == 0}} 
+  upbeats = L {|steps| steps.select{|n| n%2 == 1}}   
+  steps = (0..$clock.steps_per_measure-1).to_a
+  candidates = opts[:pov].select{|n| @note_name_match[chord,n] }
+
+  downbeats[steps].each_with_index{|e,i|
+    if candidates[i]
+      roll[opts[:name]][:probs][candidates[i]][e] = 1.0
+    end
+}
+end
+
+@improv[:next_arpeg] = L do |opts|
+  @init_improv[opts,self]
+  
+  downbeats = L {|steps| steps.select{|n| n%2 == 0}} 
+  upbeats = L {|steps| steps.select{|n| n%2 == 1}}   
+  steps = (0..$clock.steps_per_measure-1).to_a
+  candidates = opts[:pov].select{|n| @note_name_match[next_chord,n] } #this guy's alredy wanting to play in the next measure's notes
+  upbeats[steps].each_with_index{|e,i|
+    if candidates[i]
+      roll[opts[:name]][:probs][candidates[i]][e] = 1.0
+    end
+  }
+end
+
+
 @improv[:clash] = L do |opts|
   @init_improv[opts,self] and puts "MUHAHAHAH!!! RAAAAHW!"
   opts[:pov].each { |note| roll[opts[:name]][:probs][note] = [nil,nil,nil,nil].map{|n| rand/2} }              
@@ -91,14 +121,17 @@ end
 
 #@improv[:lead][:name => :a, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (33..45)]
 #@improv[:lead][:name => :b, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (46..55)]
-@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 3, :pov => (56..77)]
-@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (78..88)]
-@improv[:lead][:name => :e, :channel => 2, :test => @note_name_match, :simult => 2, :pov => (77..88)]
-#@improv[:lead][:name => :f, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (88..99)]
+#@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 3, :pov => (56..77)]
+#@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 4, :pov => (78..88)]
+#@improv[:lead][:name => :e, :channel => 0, :test => @note_name_match, :simult => 4, :pov => (44..88)]
+#@improv[:lead][:name => :f, :channel => 1, :test => @note_name_match, :simult => 2, :pov => (88..99)]
 
-@improv[:bassline][:name => :boots, :channel => 1, :test => @note_name_match, :simult => 1, :pov => (44..66)]
+#@improv[:bassline][:name => :boots, :channel => 1, :test => @note_name_match, :simult => 4, :pov => (44..66)]
 
+@improv[:arpeg][:name => :arp, :channel => 0, :pov => (50..65)]
+@improv[:next_arpeg][:name => :eag, :channel => 0, :pov => (66..75)]
 
 #DANGER, this improv is SPOOOOKY
-#@improv[:clash][:name => :clash, :channel => 0, :pov => [(50..65),(75..90),(80..95)].pick]
+#@improv[:clash][:name => :clash, :channel => 1, :pov => [(50..65),(75..90),(80..95)].pick]
+#@improv[:clash][:name => :clash2, :channel => 0, :pov => (50..95)]
           

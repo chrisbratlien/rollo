@@ -73,52 +73,6 @@ end
     simult.times {  roll[opts[:name]][:probs][candidates.pick][step] = rand } }
 end              
 
-@improv[:arpeg] = L do |opts|
-  @init_improv[opts,self]
-  
-  downbeats = L {|steps| steps.select{|n| n%2 == 0}} 
-  upbeats = L {|steps| steps.select{|n| n%2 == 1}} 
-  
-  steps = (0..$steps_per_measure-1).to_a
-  
-
-#puts steps
-#puts chord.notes[6]
-
-steps.each_with_index{|e,i|
-  if chord.notes[i]
-    roll[opts[:name]][:probs][chord.notes[i].value][e] = 1.0
-  end
-}
-end
-  
-
-
-@improv[:eager_for_next] = L do |opts|
-  @init_improv[opts,self]
-  
-  #downbeats = L {|steps| steps.select{|n| n%2 == 0}} 
-  upbeats = L {|steps| steps.select{|n| n%2 == 1}} 
-  
-  steps = (0..$steps_per_measure-1).to_a
-  
-
-#puts steps
-#puts chord.notes[6]
-
-  upbeats[steps].each_with_index do |e,i|
-    #puts self.next.chord
-    if self.next
-      if self.next.chord and self.next.chord.notes[i]
-      roll[opts[:name]][:probs][self.next.chord.notes[i].value][e] = 1.0
-      end
-    end
-  end
-end
-
-
-
-
 @improv[:clash] = L do |opts|
   @init_improv[opts,self] and puts "MUHAHAHAH!!! RAAAAHW!"
   opts[:pov].each { |note| roll[opts[:name]][:probs][note] = [nil,nil,nil,nil].map{|n| rand/2} }              
@@ -135,34 +89,16 @@ end
 
 #@improv[:chords][:name => :chords2, :test => @note_name_match, :channel => 0, :pov => chord.notes.first.value..chord.notes.last.value]
 
-#@improv[:lead][:name => :a, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (30..50)]
-#@improv[:lead][:name => :b, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (40..60)]
-#@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (50..70)]
-#@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (60..80)]
-#@improv[:lead][:name => :e, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (70..90)]
+#@improv[:lead][:name => :a, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (33..45)]
+#@improv[:lead][:name => :b, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (46..55)]
+@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 3, :pov => (56..77)]
+@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 2, :pov => (78..88)]
+@improv[:lead][:name => :e, :channel => 2, :test => @note_name_match, :simult => 2, :pov => (77..88)]
 #@improv[:lead][:name => :f, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (88..99)]
 
-
-#@improv[:lead][:name => :c, :channel => 0, :test => @note_name_match, :simult => 4, :pov => (50..65)]
-#@improv[:lead][:name => :d, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (50..70)]
-
-
-@improv[:arpeg][:name => :arp, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (50..70)]
-
-#@improv[:eager_for_next][:name => :efn, :channel => 1, :test => @note_name_match, :simult => 1, :pov => (40..60)]
-
-
-#@improv[:bassline][:name => :boots, :channel => 0, :test => @note_name_match, :simult => 1, :pov => (44..66)]
-
-
-#range = L{|x| (x..x+9)}[rand(80) + 20]
-
-#puts range
-
-#@improv[:lead][:name => :hj, :channel => 0, :test => @note_name_match, :simult => 1, :pov => range]
+@improv[:bassline][:name => :boots, :channel => 1, :test => @note_name_match, :simult => 1, :pov => (44..66)]
 
 
 #DANGER, this improv is SPOOOOKY
 #@improv[:clash][:name => :clash, :channel => 0, :pov => [(50..65),(75..90),(80..95)].pick]
- 
-puts "done with improvs" 
+          

@@ -6,6 +6,7 @@
 $options_have_loaded = true
 #puts "reloading options"
 
+
 @sync_tick = L{ |bpm,syncs_per_qn|
   60.0/bpm.to_f/syncs_per_qn.to_f
 }
@@ -18,25 +19,34 @@ $options_have_loaded = true
 60.0*bpmeas.to_f/bpm.to_f
 }
 
-$clock.bpm = 120
+
 
 #$pr_player_note_range = (0..127)
 $pr_player_note_range = (36..110)
 #$base_duration = 0.4   #i need to redo this to be tempo i guess
 $send_midi_clock = true
 $midi_sync_offset = 0.0  #-0.45
+$bpm = 170 #beats per minute (really!)
+$qtr_per_measure = 4
+$steps_per_qtr = 1  #sequencer steps per beat  #TR-909 would have 4 for this
+$steps_per_measure = $steps_per_qtr * $qtr_per_measure #sequencer steps per measure
+$syncs_per_qtr = 24   #MIDI clock syncs to send to Reason etc
+$syncs_per_measure = $syncs_per_qtr * $qtr_per_measure
+$syncs_per_step = $syncs_per_qtr / $steps_per_qtr
 
+#$interval = 60.0 / $bpm
+#@timer = MIDIator::Timer.new( $interval / 10 )
+
+$step_dt = @step_tick[$bpm,$steps_per_qtr]
+$measure_dt = @measure_tick[$bpm,3]
+$sync_dt = @sync_tick[$bpm,24]
+
+
+#puts "bpm: #{$bpm} bpmeas: #{$qtr_per_measure} spb: #{$steps_per_qtr} sdt:#{$step_dt} mdt: #{$measure_dt}"
 
 #@scale_name = :major_scale
-#@scale_name = :minor_pentatonic_scale
-#@scale_name = favorite_scales[]
-
 @scale = @root_note.send(@scale_name)
-
-@chord,@chord_name = @chord_picker[@scale,@degree,@scale.valid_chord_names_for_degree(1).pick] if !@chord
-
-
-
+@chord, @chord_name = @chord_picker[@scale,@degree,@scale.valid_chord_names_for_degree(1).pick]
 @roll = {} # name*note*step  (each improv lambda gets its own 2-d piano roll to paint with probys)
 @improv = {} #to contain different improv strategies i guess.. i only have @improv[:chords] right now.
 
@@ -47,6 +57,7 @@ $midi_sync_offset = 0.0  #-0.45
 #@degree_picker = L {|prev,scale_name| 1}
 #@degree_picker = L {|prev,scale_name| rand(6) + 1}
 
+
 wrap_around = L {|x| L{|y| y>x ? y-x : y<1 ? y+x : y }} # keeps the degrees within a specified range
 related_picker = L {|prev,scale_name| 
   a = [-3,-2,0,2,3].pick + prev
@@ -55,5 +66,25 @@ related_picker = L {|prev,scale_name|
 
 @degree_picker = related_picker
 
-@next_degree = @degree_picker[@degree,@scale_name]  #could also use old_pr.scale_name
-@next_chord,@next_chord_name = @chord_picker[@scale,@next_degree,@scale.valid_chord_names_for_degree(1).pick]
+
+
+
+@play = L { |opts|
+  notes = opts[:notes]
+  duration = opts[:duration]
+  wheen = opts[:wheen]
+  timer = opts[:timer]
+  measure = opts[:measure]
+  step = opts[:step]
+  pr = opts[:pr]
+   
+  #notes,duration,wheen,timer,measure,step,pr|  
+  wheen += @start
+  #puts timer
+  timer.at(wheen) { 
+    #puts "\a" if measure == 1 and step == 0
+    #puts "#{@root_note.name} #{@scale_name}, degree #{@degree},  #{@chord_name}" if measure == 1
+    puts "#{measure}.#{step+1} #{notes.inspect.to_s} #{wheen} #{duration}"
+    @midi.play notes, duration
+    }  
+}

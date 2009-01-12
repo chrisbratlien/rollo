@@ -1,10 +1,8 @@
-alias :L :lambda
-require 'rubygems'
 require 'midiator'
 
 @midi = MIDIator::Interface.new
 @midi.autodetect_driver
-@timer = MIDIator::Timer.new(0.0001)
+@timer = MIDIator::Timer.new(100000)
 puts "And a..."
      
 @sync_tick = L{ |bpm,syncs_per_qn|
@@ -38,30 +36,29 @@ $step_dt = @step_tick[$bpm,$steps_per_qtr]
 $measure_dt = @measure_tick[$bpm,3]
 $sync_dt = @sync_tick[$bpm,24]
 
-@start = Time.now.to_f
-@now = 0.0
-        
-@midi.driver.message(0xFA)
-
-while true
-  queue = []
+     
   (0..$syncs_per_measure-1).each do |sync|      
     # Send MIDI Clock (aka Midi Sync in Propellerhead Reason)
     if sync % $syncs_per_step == 0
-      step = sync / $syncs_per_step       
-
-      #puts queue[step].inspect.to_s
-      queue[step] = [[60,0,0.25,100]]
-      queue[step].each do |x|
-        n,c,d,v = x      
-        puts "channel #{c} #{n},#{d},#{v}"
-        @timer.at(@start + @now) { @midi.note_on(n,c,v) }
-
-        @timer.at(@start + @now + d) {@midi.note_off(n,0) }
+      step = sync / $syncs_per_step          
+      collect_for_this_step = {}
+      $pr_player_note_range.each do |note|
+        @roll.keys.each do |name|
+          chan = @roll[name][:channel]
+          collect_for_this_step[chan] = [] if !collect_for_this_step[chan]
+          if rand < @roll[name][:probs][note][step]
+            collect_for_this_step[chan] << note
+          end  
+        end
       end
+      @timer.at(@start + @now) do          
+        $syncs_per_step.times {@midi.driver.clock}
+        collect_for_this_step.keys.each do |chan|      
+          puts "channel #{chan} #{collect_for_this_step[chan].inspect.to_s}"
+          @midi.play(collect_for_this_step[chan],0.25,chan,100)
+        end
+      end        
     end
-    #puts "huzzuh"
-    @timer.at(@start + @now) { @midi.driver.message(0xF8) }
     @now += $sync_dt
   end
 end
